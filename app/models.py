@@ -18,7 +18,7 @@ class Power(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.String(255), nullable=False)
     hero_powers = db.relationship('HeroPower', back_populates='power')
 
     @validates('description')
@@ -26,6 +26,7 @@ class Power(db.Model):
         if description and len(description) < 20:
             raise ValueError("Description must be at least 20 characters long.")
         return description
+
 
 class HeroPower(db.Model):
     __tablename__ = 'hero_powers'

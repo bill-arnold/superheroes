@@ -2,10 +2,11 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import validates, relationship
 from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy_serializer import SerializerMixin
 
 db = SQLAlchemy()
 
-class Hero(db.Model):
+class Hero(db.Model,SerializerMixin):
     __tablename__ = 'heroes'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -13,7 +14,7 @@ class Hero(db.Model):
     super_name = db.Column(db.String(255), nullable=False)
     hero_powers = db.relationship('HeroPower', back_populates='hero')
 
-class Power(db.Model):
+class Power(db.Model,SerializerMixin):
     __tablename__ = 'powers'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -21,14 +22,15 @@ class Power(db.Model):
     description = db.Column(db.String(255), nullable=False)
     hero_powers = db.relationship('HeroPower', back_populates='power')
 
-    @validates('description')
+    @validates('description',)
     def validate_description(self, key, description):
-        if description and len(description) < 20:
-            raise ValueError("Description must be at least 20 characters long.")
+        if description and len(description.split()) < 3:
+           raise ValueError("Description must have at least 3 words.")
         return description
 
 
-class HeroPower(db.Model):
+
+class HeroPower(db.Model,SerializerMixin):
     __tablename__ = 'hero_powers'
 
     id = db.Column(db.Integer, primary_key=True)

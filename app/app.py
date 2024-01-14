@@ -10,7 +10,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 migrate = Migrate(app, db,directory='migrations')
-
+ 
 with app.app_context():
     db.create_all()
 
@@ -30,11 +30,12 @@ def get_hero(hero_id):
             "id": hero.id,
             "name": hero.name,
             "super_name": hero.super_name,
-            "powers": [{"id": power.id, "name": power.name, "description": power.description} for power in hero.hero_powers]
+            "powers": [{"id": hero_power.power.id, "name": hero_power.power.name, "description": hero_power.power.description} for hero_power in hero.hero_powers]
         }
         return jsonify(hero_data)
     else:
         return jsonify({"error": "Hero not found"}), 404
+
 
 # Get all powers
 @app.route('/powers', methods=['GET'])
@@ -65,6 +66,8 @@ def update_power(power_id):
         data = request.get_json()
         power.description = data.get('description', power.description)
 
+        # Validate the description length (add validation if needed)
+
         try:
             db.session.commit()
             return jsonify({
@@ -76,7 +79,6 @@ def update_power(power_id):
             return jsonify({"error": "Failed to update power"}), 500
     else:
         return jsonify({"error": "Power not found"}), 404
-
 # Create a new HeroPower
 @app.route('/hero_powers', methods=['POST'])
 def create_hero_power():
@@ -89,15 +91,21 @@ def create_hero_power():
 
         # Fetch the hero data after the creation of HeroPower
         hero = Hero.query.get(data['hero_id'])
-        hero_data = {
-            "id": hero.id,
-            "name": hero.name,
-            "super_name": hero.super_name,
-            "powers": [{"id": power.id, "name": power.name, "description": power.description} for power in hero.hero_powers]
-        }
-        return jsonify(hero_data), 201
+
+        if hero is not None:  # Check if hero is not None before accessing its attributes
+            hero_data = {
+                "id": hero.id,
+                "name": hero.name,
+                "super_name": hero.super_name,
+                "powers": [{"id": power.id, "name": power.name, "description": power.description} for power in hero.hero_powers]
+            }
+            return jsonify(hero_data), 201
+        else:
+            return jsonify({"errors": ["Hero not found"]}), 404
+
     except Exception as e:
         return jsonify({"errors": ["Validation errors"]}), 400
+
 
 # Your existing home route
 @app.route('/')
